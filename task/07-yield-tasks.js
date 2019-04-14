@@ -108,9 +108,18 @@ function* getFibonacciSequence() {
  *
  */
 function* depthTraversalTree(root) {
-    throw new Error('Not implemented');
+    let queue=[root];
+    while(queue.length!==0){
+        let current=queue[queue.length-1];
+        yield current;
+        queue.pop();
+        if(current.children!==undefined){
+            for (let i=current.children.length-1;i>=0;i--){
+                queue.push(current.children[i]);
+            }
+        }
+    }
 }
-
 
 /**
  * Traverses a tree using the breadth-first strategy
