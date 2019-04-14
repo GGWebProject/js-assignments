@@ -17,9 +17,84 @@
  *  ]
  */
 function createCompassPoints() {
-    throw new Error('Not implemented');
-    var sides = ['N','E','S','W'];  // use array of cardinal directions only!
-}
+    var sides = ['N','E','S','W'];
+    let ans = []
+    let az = 0
+    for(let i = 0; i<32;i++){
+        let obj = {}
+        let name = ''
+        let next = ''
+        let cur = sides[Math.floor(i/8)]
+        name += cur
+        if (Math.floor(i/8) == 3){
+          next = sides[0]
+        }else{ 
+          next = sides[Math.floor(i/8) + 1]
+        }
+        switch (i%8) {
+          case 1:
+            name += 'b' + next
+            break;
+          case 2:
+            name = cur
+            if (Math.floor(i/8) == 1 || Math.floor(i/8) == 3){
+                name += next
+            }else{
+                name += cur
+            }
+            if (Math.floor(i/8) == 0 || Math.floor(i/8) == 1){
+                name += sides[1]
+            }else{
+                name += sides[3]
+            }
+            break;
+          case 3:
+          if (Math.floor(i/8) == 0 || Math.floor(i/8) == 2){
+            name = cur +next
+        }else{
+            name = next + cur
+        }
+            name += 'b' + cur
+            break;
+          case 4:
+            if (Math.floor(i/8) == 0 || Math.floor(i/8) == 2){
+                name = cur +next
+            }else{
+                name = next + cur
+            }
+            break;
+          case 5:
+          if (Math.floor(i/8) == 0 || Math.floor(i/8) == 2){
+            name = cur +next
+        }else{
+            name = next + cur
+        }
+            name += 'b' + next
+            break;
+          case 6:
+            name = next  
+            if (Math.floor(i/8) == 1 || Math.floor(i/8) == 3){
+               name += next
+             }else{
+                 name += cur
+             }
+            if (Math.floor(i/8) == 0 || Math.floor(i/8) == 1){
+                name += sides[1]
+            }else{
+                name += sides[3]
+            }
+            break;
+          case 7:
+            name = next + 'b' + cur
+            break;  
+        }
+        obj['abbreviation'] = name 
+        obj['azimuth'] = az 
+        ans.push(obj)
+        az += 11.25
+    } 
+    return ans
+  }
 
 
 /**
@@ -56,7 +131,55 @@ function createCompassPoints() {
  *   'nothing to do' => 'nothing to do'
  */
 function* expandBraces(str) {
-    throw new Error('Not implemented');
+    let r = ['']
+    let idx=[0]
+    
+    while( idx[0] < str.length ) {
+      let k = str[idx[0]]
+      
+      if(k == '{'){
+        r = merge(r, go(str, idx))
+      }else{
+         for(let i=0;i<r.length;i++) r[i]+=k
+         idx[0] ++ 
+      }
+    }
+
+    function merge(a, b){
+        let r = []
+        for(let i=0;i<a.length;i++)for(let j=0;j<b.length;j++) r.push(a[i]+b[j])
+        return r
+      }
+      
+      function go(str, idx){
+        let r = []
+        idx[0] += 1
+        
+        while(str[idx[0]] != '}'){
+          let t = ['']
+          while(str[idx[0]] != ',' && str[idx[0]] != '}') {
+            let k = str[idx[0]]
+            if(k == '{') {
+              t = merge(t, go(str,idx))
+            }
+            else{
+              t = merge(t, [k])
+              idx[0] ++ 
+            }
+          }
+          if(str[idx[0]] == ','){
+            idx[0] ++
+            if(str[idx[0]] =='}')r= r.concat([''])
+          }
+          
+          r = r.concat(t)
+        }
+        idx[0] ++
+        if(r.length == 0) r = ['']
+        return r
+      }
+    
+    yield* r;
 }
 
 
@@ -88,7 +211,26 @@ function* expandBraces(str) {
  *
  */
 function getZigZagMatrix(n) {
-    throw new Error('Not implemented');
+    let mtx = [];
+    for (var i = 0; i < n; i++) 
+        mtx[i] = [];
+  
+    var i=1, j=1;
+    for (var e = 0; e < n*n; e++) {
+        mtx[i-1][j-1] = e;
+        if ((i + j) % 2 == 0) {
+            // Even stripes
+            if (j < n) j ++;
+            else       i += 2;
+            if (i > 1) i --;
+        } else {
+            // Odd stripes
+            if (i < n) i ++;
+            else       j += 2;
+            if (j > 1) j --;
+        }
+    }
+    return mtx
 }
 
 
@@ -113,9 +255,34 @@ function getZigZagMatrix(n) {
  *
  */
 function canDominoesMakeRow(dominoes) {
-    throw new Error('Not implemented');
-}
+    let returned_value=false;
+    let is_visited=(new Array(dominoes.length)).fill(false);
 
+    function rec(index,value,left){
+        if (left===0){
+            returned_value=true;
+            return;
+        }
+        is_visited[index]=true;
+        for(let i=0;i<dominoes.length;i++){
+            if(!is_visited[i]){
+                if(dominoes[i].indexOf(value)!==-1){
+                    rec(i,dominoes[i][0]===value?dominoes[i][1]:dominoes[i][0],left-1);
+                }
+            }
+        }
+        is_visited[index]=false;
+    }
+    for(let i=0;i<dominoes.length;i++){
+        for (let j=0;j<dominoes[i].length;j++){
+            rec(i,dominoes[i][j],dominoes.length-1);
+            if (returned_value===true){
+                return true;
+            }
+        }      
+    }
+    return false; 
+}
 
 /**
  * Returns the string expression of the specified ordered list of integers.
@@ -137,7 +304,26 @@ function canDominoesMakeRow(dominoes) {
  * [ 1, 2, 4, 5]          => '1,2,4,5'
  */
 function extractRanges(nums) {
-    throw new Error('Not implemented');
+    let result = [];
+    let rg = [];
+
+    for(let i = 0; i < nums.length; i++) {
+      if(nums[i] === (nums[i+1] - 1)) {
+        rg.push(nums[i]);
+        continue;
+      } else {
+        rg.push(nums[i]);
+      } 
+      if(rg.length > 2) {
+        rg.push(nums[i]);
+        result.push(rg[0] + '-' + rg.pop());
+        rg = [];
+      } else {
+        result.push(rg);
+        rg = [];
+      }
+    }
+    return result.join(',');
 }
 
 module.exports = {
